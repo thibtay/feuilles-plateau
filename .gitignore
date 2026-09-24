@@ -1,0 +1,6 @@
+# Données réelles (noms, licences) : jamais publiées sur le dépôt public.
+# Chaque coach charge son propre fichier localement via le bouton "Charger".
+players.csv
+staff.csv
+.DS_Store
+f743536eaca57cf152e90e90b17ce64c.pdf

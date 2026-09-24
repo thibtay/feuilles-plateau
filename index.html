@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Feuilles de plateau</title>
+<style>
+* { box-sizing: border-box; }
+body { font: 14px system-ui, sans-serif; margin: 0; background: #f4f4f4; color: #222; }
+header { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: #1a4a8a; color: #fff; }
+h1 { margin: 0; font-size: 20px; } h2, h3 { margin: 0 0 8px; }
+button { padding: 7px 14px; border: 1px solid #999; border-radius: 4px; background: #fff; cursor: pointer; }
+button.primary { background: #e53935; color: #fff; border-color: #b71c1c; font-weight: 600; }
+main { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 16px; max-width: 1000px; margin: auto; }
+.col { background: #fff; padding: 14px; border-radius: 6px; }
+input[type=search], label input { width: 100%; padding: 6px; margin: 4px 0 8px; }
+label { display: block; font-weight: 600; margin-top: 6px; }
+ul, ol { list-style: none; padding: 0; margin: 0; }
+ul { max-height: 55vh; overflow: auto; border: 1px solid #ddd; }
+#players li { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-bottom: 1px solid #eee; cursor: pointer; }
+#players li:hover { background: #eef4ff; }
+#players li.taken { color: #999; }
+#players li small { margin-left: auto; color: #777; }
+.tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+.tabs button.on { background: #1a4a8a; color: #fff; }
+#roster li { display: flex; gap: 8px; padding: 4px 6px; border-bottom: 1px solid #eee; }
+#roster li span.n { width: 22px; color: #888; }
+#roster li button { margin-left: auto; padding: 0 8px; }
+#roster li.cap span.name { text-decoration: underline; }
+.hint { color: #777; font-size: 12px; }
+
+/* ===== Feuille : dimensions mesurées sur le modèle officiel ===== */
+#sheet { display: none; padding: 16px; }
+body.gen #sheet { display: flex; flex-wrap: wrap; gap: 3mm; justify-content: center; }
+body.gen main { display: none; }
+.team { width: 99.3mm; border-collapse: collapse; table-layout: fixed; background: #fff; color: #000; font: 8pt Calibri, Arial, sans-serif; break-inside: avoid; }
+.team td, .team th { border: .25mm solid #000; padding: 0 1mm; overflow: hidden; white-space: nowrap; }
+.team .title td { padding: 0; height: 5.8mm; border-bottom: none; }
+.team .split { display: flex; height: 100%; }
+.team .split .lbl { width: 22.4mm; padding-left: 2mm; display: flex; align-items: center; font: italic bold 11pt Calibri, Arial, sans-serif; }
+.team .split .fill { flex: 1; background: #ead1dc; padding: 0 1mm; display: flex; align-items: center; font-weight: 600; }
+.team .head th { height: 4.85mm; font: italic bold 6.5pt Calibri, Arial, sans-serif; }
+.team .p td { height: 4.37mm; font-size: 8pt; }
+.team .p td:first-child { text-align: center; font: italic 6.5pt Calibri, Arial, sans-serif; padding: 0; }
+.team .x td { height: 5.5mm; }
+.team .x td:first-child { font: italic bold 6.5pt Calibri, Arial, sans-serif; text-align: center; padding: 0; }
+.team .sig td { padding: 0; height: 8.5mm; }
+.team .sig .split { height: 8.4mm; }
+.team .sig .lbl { width: 25.6mm; justify-content: center; padding: 0; font: italic bold 6.5pt Calibri, Arial, sans-serif; }
+.team .cap { text-decoration: underline; }
+.team .girl { border: .3mm solid #000; border-radius: 3mm; padding: .2mm 2mm; }
+
+@page { size: A4; margin: 8mm 4mm 4mm; }
+@media print {
+  body { background: #fff; } .noprint { display: none !important; }
+  body.gen #sheet { display: flex; padding: 0; justify-content: flex-start; gap: 3mm; }
+  .team .fill { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+.csvbar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+label select{width:100%;padding:6px;margin:4px 0 8px}
+
+/* ===== Mobile : une seule colonne, boutons plus faciles à toucher ===== */
+@media screen and (max-width: 640px) {
+  header { flex-direction: column; align-items: stretch; gap: 8px; padding: 10px; }
+  header h1 { text-align: center; }
+  .actions { display: flex; gap: 8px; }
+  .actions button { flex: 1; padding: 10px; }
+  main { grid-template-columns: 1fr; max-width: 100%; padding: 10px; gap: 12px; }
+  ul { max-height: 42vh; }
+  #players li, #roster li { padding: 9px 8px; }
+  .tabs button { flex: 1; padding: 9px 4px; }
+  body.gen #sheet { flex-direction: column; align-items: center; overflow-x: auto; }
+}
+</style>
+</head>
+<body>
+<header class="noprint">
+  <h1>Feuilles de plateau</h1>
+  <div class="actions">
+    <button id="gen" class="primary">Générer les tableaux</button>
+    <button id="print" hidden>Imprimer (taille réelle)</button>
+    <button id="back" hidden>← Retour</button>
+  </div>
+</header>
+
+<main id="edit" class="noprint">
+  <section class="col">
+    <h2>Joueurs <span id="count"></span></h2>
+    <div class="csvbar">
+      <button id="load">Charger players.csv</button>
+      <button id="loadStaff">Charger staff.csv</button>
+      <input id="fileStaff" type="file" accept=".csv,text/csv,text/plain" hidden>
+      <input id="file" type="file" accept=".csv,text/csv,text/plain" hidden>
+    </div>
+    <input id="search" type="search" placeholder="Rechercher…">
+    <ul id="players"></ul>
+    <p class="hint">Format CSV : <code>nom;prenom;licence;cat;sexe</code>. La licence est facultative (case vide) ou peut être une date de naissance <code>JJ/MM/AAAA</code> à la place. Liste et équipes sont mémorisées dans ce navigateur.</p>
+  </section>
+
+  <section class="col">
+    <div class="tabs" id="tabs"></div>
+    <h3 id="teamTitle"></h3>
+    <button id="clearTeam">Vider cette équipe</button> <button id="clearAll">Vider toutes les équipes</button>
+    <ol id="roster"></ol>
+    <label>Dirigeant <select id="dir"></select></label>
+    <label>Éducateur <select id="edu"></select></label>
+  </section>
+</main>
+
+<div id="sheet"></div>
+<script>
+const MAX_PLAYERS = 12, LETTERS = ['A', 'B', 'C', 'D', 'E'];
+const $ = id => document.getElementById(id);
+const blank = () => ({ dir: '', edu: '', ids: [], cap: null });
+let players = [], staff = [], teams = LETTERS.map(blank), cur = 0;
+
+const key = p => p.licence || p.id;   // identifiant stable : la licence si connue, sinon un id de secours (pas de licence obligatoire)
+const label = p => `${p.nom.toUpperCase()} ${p.prenom}`;
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const teamOf = k => teams.findIndex(t => t.ids.includes(k));
+const byName = (a, b) => label(a).localeCompare(label(b));
+
+/* ---- stockage local (navigateur) ---- */
+function save() { try { localStorage.setItem('fdm', JSON.stringify({ players, staff, teams })); } catch {} }
+function load() {
+  try {
+    const d = JSON.parse(localStorage.getItem('fdm') || '{}');
+    if (Array.isArray(d.players)) players = d.players;
+    if (Array.isArray(d.staff)) staff = d.staff;
+    if (Array.isArray(d.teams) && d.teams.length === LETTERS.length) teams = d.teams;
+  } catch {}
+}
+
+/* ---- CSV ---- */
+function parseCsv(txt) {
+  const lines = txt.replace(/^﻿/, '').split(/\r?\n/).filter(l => l.trim());
+  if (!lines.length) return [];
+  const sep = (lines[0].match(/;/g) || []).length >= (lines[0].match(/,/g) || []).length ? ';' : ',';
+  return lines.slice(1).map((l, i) => {
+    const [nom = '', prenom = '', licence = '', cat = '', sexe = ''] = l.split(sep).map(s => s.trim());
+    return { id: 'j' + i, nom, prenom, licence, cat, sexe: sexe.toUpperCase().slice(0, 1) };
+  }).filter(p => p.nom || p.prenom);
+}
+function parseStaff(txt) {
+  const lines = txt.replace(/^\uFEFF/, '').split(/\r?\n/).filter(l => l.trim());
+  if (!lines.length) return [];
+  const sep = (lines[0].match(/;/g) || []).length >= (lines[0].match(/,/g) || []).length ? ';' : ',';
+  return lines.slice(1).map((l, i) => {
+    const [nom = '', prenom = '', licence = ''] = l.split(sep).map(s => s.trim());
+    return { id: 's' + i, nom, prenom, licence };
+  }).filter(p => p.nom || p.prenom);
+}
+
+$('load').onclick = () => $('file').click();
+$('file').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  players = parseCsv(await f.text()).sort(byName);
+  teams.forEach(t => { t.ids = t.ids.filter(k => players.some(p => key(p) === k)); if (!t.ids.includes(t.cap)) t.cap = null; });
+  e.target.value = ''; save(); render();
+};
+$('loadStaff').onclick = () => $('fileStaff').click();
+$('fileStaff').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  staff = parseStaff(await f.text()).sort(byName);
+  teams.forEach(t => ['dir', 'edu'].forEach(k => { if (!staff.some(p => key(p) === t[k])) t[k] = ''; }));
+  e.target.value = ''; save(); render();
+};
+
+/* ---- rendu ---- */
+function renderPlayers() {
+  const q = $('search').value.toLowerCase();
+  $('count').textContent = `(${players.length})`;
+  $('players').innerHTML = players.filter(p => (label(p) + p.licence).toLowerCase().includes(q)).map(p => {
+    const t = teamOf(key(p));
+    return `<li data-k="${esc(key(p))}" class="${t >= 0 ? 'taken' : ''}"><span>${esc(label(p))}</span><small>${esc(p.cat)} ${p.sexe === 'F' ? '♀' : ''} ${esc(p.licence)}${t >= 0 ? ' · Éq. ' + LETTERS[t] : ''}</small></li>`;
+  }).join('') || '<li>Aucun joueur : charge un CSV avec le bouton ci-dessus.</li>';
+}
+function renderTeam() {
+  const t = teams[cur];
+  $('tabs').innerHTML = LETTERS.map((l, i) => `<button data-i="${i}" class="${i === cur ? 'on' : ''}">Éq. ${l} (${teams[i].ids.length})</button>`).join('');
+  const opts = sel => '<option value="">—</option>' + staff.map(p => `<option value="${esc(key(p))}"${key(p) === sel ? ' selected' : ''}>${esc(label(p))}</option>`).join('');
+  $('dir').innerHTML = opts(t.dir); $('edu').innerHTML = opts(t.edu);
+  $('teamTitle').textContent = `Équipe ${LETTERS[cur]} — ${t.ids.length}/${MAX_PLAYERS}`;
+  $('roster').innerHTML = t.ids.map((k, i) => {
+    const p = players.find(x => key(x) === k); if (!p) return '';
+    return `<li class="${t.cap === k ? 'cap' : ''}"><span class="n">${i + 1}</span><span class="name">${esc(label(p))}</span><small>${esc(p.licence)}</small>
+      <button data-cap="${esc(k)}" title="Capitaine (souligné)">C</button><button data-rm="${esc(k)}">×</button></li>`;
+  }).join('');
+}
+const render = () => { renderPlayers(); renderTeam(); };
+
+$('players').onclick = e => {
+  const li = e.target.closest('li[data-k]'); if (!li) return;
+  const k = li.dataset.k, t = teams[cur], prev = teamOf(k);
+  if (prev === cur) return;
+  if (prev >= 0) return alert(`Ce joueur est déjà dans l'équipe ${LETTERS[prev]} : retire-le d'abord.`);
+  if (t.ids.length >= MAX_PLAYERS) return alert(`Maximum ${MAX_PLAYERS} joueurs par équipe.`);
+  t.ids.push(k); save(); render();
+};
+$('roster').onclick = e => {
+  const t = teams[cur], d = e.target.dataset;
+  if (d.rm) { t.ids = t.ids.filter(x => x !== d.rm); if (t.cap === d.rm) t.cap = null; }
+  else if (d.cap) t.cap = t.cap === d.cap ? null : d.cap;
+  else return;
+  save(); render();
+};
+$('tabs').onclick = e => { if (e.target.dataset.i) { cur = +e.target.dataset.i; renderTeam(); } };
+['dir', 'edu'].forEach(f => $(f).onchange = () => { teams[cur][f] = $(f).value; save(); });
+$('search').oninput = renderPlayers;
+$('clearTeam').onclick = () => {
+  if (!confirm(`Vider l'équipe ${LETTERS[cur]} ?`)) return;
+  teams[cur] = blank(); save(); render();
+};
+$('clearAll').onclick = () => {
+  if (!confirm('Vider toutes les équipes ?')) return;
+  teams = LETTERS.map(blank); save(); render();
+};
+
+/* ---- génération : un tableau par équipe, à la taille du modèle ---- */
+function staffRow(lbl, k) {
+  const p = staff.find(x => key(x) === k);
+  return `<tr class="x"><td>${lbl}</td><td>${p ? esc(label(p)) : ''}</td><td>${p ? esc(p.licence) : ''}</td><td></td></tr>`;
+}
+function teamTable(t, i) {
+  const rows = Array.from({ length: MAX_PLAYERS }, (_, n) => {
+    const p = players.find(x => key(x) === t.ids[n]);
+    const name = p ? `<span class="${t.cap === key(p) ? 'cap' : ''}">${esc(label(p))}</span>` : '';
+    return `<tr class="p"><td>${n + 1}</td><td>${name}</td><td>${p ? (p.sexe === 'F' ? `<span class="girl">${esc(p.licence)}</span>` : esc(p.licence)) : ''}</td><td>${p ? esc(p.cat) : ''}</td></tr>`;
+  }).join('');
+  return `<table class="team">
+    <colgroup><col style="width:7.9mm"><col style="width:41.8mm"><col style="width:42.3mm"><col style="width:7.3mm"></colgroup>
+    <tr class="head"><th></th><th>Nom et prénom</th><th>N° de licence</th><th>Cat</th></tr>
+    ${rows}
+    ${staffRow('Dir.', t.dir)}
+    ${staffRow('Edu.', t.edu)}
+  </table>`;
+}
+$('gen').onclick = () => {
+  const used = teams.map((t, i) => [t, i]).filter(([t]) => t.ids.length || t.dir || t.edu);
+  if (!used.length) return alert('Aucune équipe renseignée.');
+  $('sheet').innerHTML = used.map(([t, i]) => teamTable(t, i)).join('');
+  document.body.classList.add('gen');
+  $('gen').hidden = true; $('print').hidden = false; $('back').hidden = false;
+};
+$('back').onclick = () => { document.body.classList.remove('gen'); $('gen').hidden = false; $('print').hidden = true; $('back').hidden = true; };
+$('print').onclick = () => window.print();
+
+/* ---- au démarrage : reprend la sauvegarde du navigateur, ou essaie de charger
+   players.csv / staff.csv s'ils sont à côté de la page (utile quand la page
+   est hébergée en ligne ; échoue silencieusement sinon, il reste le bouton "Charger"). */
+load(); render();   // affiche tout de suite ce qui est déjà mémorisé dans ce navigateur
+(async () => {
+  let changed = false;
+  if (!players.length) {
+    try { const r = await fetch('players.csv'); if (r.ok) { players = parseCsv(await r.text()).sort(byName); changed = true; } } catch {}
+  }
+  if (!staff.length) {
+    try { const r = await fetch('staff.csv'); if (r.ok) { staff = parseStaff(await r.text()).sort(byName); changed = true; } } catch {}
+  }
+  if (changed) render();
+  if (location.hash === '#gen') $('gen').click();
+})();
+</script>
+</body>
+</html>
