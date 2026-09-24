@@ -68,8 +68,14 @@ label select{width:100%;padding:6px;margin:4px 0 8px}
   ul { max-height: 42vh; }
   #players li, #roster li { padding: 9px 8px; }
   .tabs button { flex: 1; padding: 9px 4px; }
-  body.gen #sheet { flex-direction: column; align-items: center; overflow-x: auto; }
+  #sheet { padding: 10px 6px; }
+  body.gen #sheet { flex-direction: column; align-items: center; }
 }
+/* Aperçu à l'écran seulement (l'impression garde la taille réelle exacte) :
+   un tableau fait ~99mm ≈ toute la largeur d'un téléphone, on le réduit pour
+   qu'il tienne sans avoir à faire défiler horizontalement. */
+@media screen and (max-width: 430px) { body.gen .team { zoom: 0.9; } }
+@media screen and (max-width: 360px) { body.gen .team { zoom: 0.8; } }
 </style>
 </head>
 <body>
