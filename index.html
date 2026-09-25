@@ -35,14 +35,15 @@ body.gen #sheet { display: flex; flex-wrap: wrap; gap: 3mm; justify-content: cen
 body.gen main { display: none; }
 .team { width: 97mm; border-collapse: collapse; table-layout: fixed; background: #fff; color: #000; font-family: "Times New Roman", Times, serif; font-size: 16.08pt; break-inside: avoid; }
 .team td, .team th { border: .25mm solid #000; padding: 0 1.5mm; overflow: hidden; white-space: nowrap; font-weight: 400; }
-.team .title td { height: 7.62mm; vertical-align: top; padding-top: .9mm; }
-.team .head th { height: 7.62mm; text-align: center; }
+.team .title td { height: 7.62mm; vertical-align: top; padding-top: .9mm; border-bottom: none; }
+.team .head th { height: 7.62mm; text-align: center; border-top: none; }
 .team .p td { height: 6.71mm; font-size: 11.5pt; }
 .team .deleg td { height: 6.71mm; font-size: 9pt; }
 .team .deleg td:first-child { vertical-align: top; padding-top: .7mm; }
 /* Ligne à remplir tracée à l'avance (comme sur le modèle) : le texte se pose
    dessus sans y toucher, et le trait ne s'étend pas sous le libellé. */
-.team .split { display: flex; align-items: baseline; }
+.team .split { display: flex; align-items: flex-end; }
+.team .split b, .team .split .fill { line-height: 1; }
 .team .split b { white-space: nowrap; margin-right: 1mm; }
 .team .split .fill { flex: 1; min-width: 4mm; border-bottom: .25mm solid #000; padding-bottom: .7mm; overflow: hidden; white-space: nowrap; }
 
@@ -118,6 +119,7 @@ let players = [], staff = [], teams = LETTERS.map(blank), cur = 0;
 const key = p => p.licence || p.id;   // identifiant stable : la licence si connue, sinon un id de secours (pas de licence obligatoire)
 const label = p => `${p.nom.toUpperCase()} ${p.prenom}`;
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const escFill = s => esc(s) || '&nbsp;';   // un span totalement vide n'a pas la même hauteur de ligne qu'un span avec contenu
 const teamOf = k => teams.findIndex(t => t.ids.includes(k));
 const byName = (a, b) => label(a).localeCompare(label(b));
 
@@ -217,10 +219,10 @@ function teamTable(t) {
   }).join('');
   return `<table class="team">
     <colgroup><col style="width:55mm"><col style="width:42mm"></colgroup>
-    <tr class="title"><td colspan="2"><div class="split"><b>Equipe :</b><span class="fill">${esc(t.nom)}</span></div></td></tr>
+    <tr class="title"><td colspan="2"><div class="split"><b>Equipe :</b><span class="fill">${escFill(t.nom)}</span></div></td></tr>
     <tr class="head"><th>Nom Prénom</th><th>N° Licence</th></tr>
     ${rows}
-    <tr class="deleg"><td><div class="split"><b>Délégué :</b><span class="fill">${deleg ? esc(label(deleg)) : ''}</span></div></td><td>${deleg ? esc(deleg.licence) : ''}</td></tr>
+    <tr class="deleg"><td><div class="split"><b>Délégué :</b><span class="fill">${deleg ? esc(label(deleg)) : '&nbsp;'}</span></div></td><td>${deleg ? esc(deleg.licence) : ''}</td></tr>
   </table>`;
 }
 $('gen').onclick = () => {
