@@ -15,11 +15,9 @@ automatiquement ; sinon, utiliser les boutons « Charger ».
 
 ## Format des fichiers CSV
 
-- `players.csv` : `nom;prenom;licence;cat;sexe`. La licence est facultative
+- `players.csv` et `staff.csv` : `nom;prenom;licence`. La licence est facultative
   (case vide) ou peut être une date de naissance `JJ/MM/AAAA` à la place.
-  `sexe` = `M` ou `F` (les filles ont leur n° de licence entouré à l'impression).
-- `staff.csv` : `nom;prenom;licence`. Choisi par équipe comme Dirigeant ou
-  Éducateur (une même personne peut être les deux).
+- `staff.csv` est utilisé pour choisir le Délégué de chaque équipe.
 
 ## Vie privée
 
@@ -33,11 +31,14 @@ entre appareils.
 
 ## Fonctionnement
 
-- 5 équipes (A–E), 12 joueurs max chacune. Cliquer un joueur dans la liste
-  de gauche l'ajoute à l'équipe affichée ; il faut le retirer avant de le
-  mettre dans une autre équipe.
-- Bouton « C » sur un joueur = capitaine (souligné sur le tableau imprimé).
+Calé sur le modèle « Feuille de PLATEAU U9 » (Nom Prénom / N° Licence, 8 joueurs,
+un Délégué par équipe) :
+
+- Jusqu'à 8 équipes (A–H), 8 joueurs max chacune. Cliquer un joueur dans la liste
+  de gauche l'ajoute à l'équipe affichée ; il faut le retirer avant de le mettre
+  dans une autre équipe.
+- Un nom d'équipe et un Délégué (choisi dans staff.csv) par équipe.
 - « Vider cette équipe » / « Vider toutes les équipes » remettent à zéro.
 - « Générer les tableaux » affiche un tableau par équipe ayant au moins un
-  joueur, un dirigeant ou un éducateur, prêt à découper (deux par ligne, 3 mm
-  d'écart). Chaque tableau fait 99,3 × 82,7 mm, comme sur la feuille officielle.
+  joueur, un nom ou un délégué, prêt à découper (deux par ligne, 3 mm d'écart).
+  Chaque tableau fait 97 × 75,7 mm, comme sur le modèle.
