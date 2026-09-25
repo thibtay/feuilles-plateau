@@ -37,8 +37,9 @@ body.gen main { display: none; }
 .team td, .team th { border: .25mm solid #000; padding: 0 1.5mm; overflow: hidden; white-space: nowrap; font-weight: 400; }
 .team .title td { height: 7.62mm; }
 .team .head th { height: 7.62mm; text-align: center; }
-.team .p td { height: 6.71mm; }
-.team .deleg td { height: 6.71mm; font-size: 12pt; }
+.team .p td { height: 6.71mm; font-size: 11.5pt; }
+.team .deleg td { height: 6.71mm; font-size: 9pt; }
+.team .fill { text-decoration: underline; text-underline-offset: 1.5pt; }
 
 @page { size: A4; margin: 8mm 4mm 4mm; }
 @media print {
@@ -211,10 +212,10 @@ function teamTable(t) {
   }).join('');
   return `<table class="team">
     <colgroup><col style="width:55mm"><col style="width:42mm"></colgroup>
-    <tr class="title"><td colspan="2"><b>Equipe :</b> ${esc(t.nom)}</td></tr>
+    <tr class="title"><td colspan="2"><b>Equipe :</b> <span class="fill">${esc(t.nom)}</span></td></tr>
     <tr class="head"><th>Nom Prénom</th><th>N° Licence</th></tr>
     ${rows}
-    <tr class="deleg"><td><b>Délégué :</b> ${deleg ? esc(label(deleg)) : ''}</td><td>${deleg ? esc(deleg.licence) : ''}</td></tr>
+    <tr class="deleg"><td><b>Délégué :</b> <span class="fill">${deleg ? esc(label(deleg)) : ''}</span></td><td>${deleg ? esc(deleg.licence) : ''}</td></tr>
   </table>`;
 }
 $('gen').onclick = () => {
