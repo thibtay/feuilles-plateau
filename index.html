@@ -28,6 +28,13 @@ ul { max-height: 55vh; overflow: auto; border: 1px solid #ddd; }
 #roster li span.n { width: 22px; color: #888; }
 #roster li button { margin-left: auto; padding: 0 8px; }
 .hint { color: #777; font-size: 12px; }
+#staffList li { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-bottom: 1px solid #eee; }
+#staffList li small { margin-left: auto; color: #777; }
+.edit-row { cursor: default !important; gap: 6px; }
+.edit-row input { flex: 1; min-width: 0; padding: 5px 6px; font: inherit; border: 1px solid #ccc; border-radius: 3px; }
+.edit-row input.e-licence { flex: 0 0 110px; }
+.edit-row button { padding: 3px 9px; }
+.edit-row.add-row { background: #f7f9fc; }
 
 /* ===== Feuille : image extraite telle quelle du PDF « Feuille de PLATEAU U9 »
    (bordures, libellés et lignes à remplir déjà dedans, au pixel près) ; on ne
@@ -90,13 +97,13 @@ label select{width:100%;padding:6px;margin:4px 0 8px}
     <h2>Joueurs <span id="count"></span></h2>
     <div class="csvbar">
       <button id="load">Charger players.csv</button>
-      <button id="loadStaff">Charger staff.csv</button>
-      <input id="fileStaff" type="file" hidden>
+      <button id="editPlayers">Éditer</button>
+      <button id="exportPlayers" hidden>Exporter CSV</button>
       <input id="file" type="file" hidden>
     </div>
     <input id="search" type="search" placeholder="Rechercher…">
     <ul id="players"></ul>
-    <p class="hint">Format CSV : <code>nom;prenom;licence</code>. La licence est facultative (case vide) ou peut être une date de naissance <code>JJ/MM/AAAA</code> à la place. Liste et équipes sont mémorisées dans ce navigateur.</p>
+    <p class="hint">Format CSV : <code>nom;prenom;licence</code>. La licence est facultative (case vide) ou peut être une date de naissance <code>JJ/MM/AAAA</code> à la place. « Éditer » permet de corriger ou compléter la liste (licence notamment) directement ici ; « Exporter CSV » récupère ensuite le fichier à jour. Liste et équipes sont mémorisées dans ce navigateur.</p>
   </section>
 
   <section class="col">
@@ -107,6 +114,18 @@ label select{width:100%;padding:6px;margin:4px 0 8px}
     <ol id="roster"></ol>
     <label>Délégué <select id="delegue"></select></label>
   </section>
+
+  <section class="col">
+    <h2>Staff <span id="countStaff"></span></h2>
+    <div class="csvbar">
+      <button id="loadStaff">Charger staff.csv</button>
+      <button id="editStaff">Éditer</button>
+      <button id="exportStaff" hidden>Exporter CSV</button>
+      <input id="fileStaff" type="file" hidden>
+    </div>
+    <ul id="staffList"></ul>
+    <p class="hint">Dirigeants/éducateurs disponibles comme Délégué pour chaque équipe.</p>
+  </section>
 </main>
 
 <div id="sheet"></div>
@@ -115,12 +134,14 @@ const MAX_PLAYERS = 8, LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 const $ = id => document.getElementById(id);
 const blank = () => ({ nom: '', delegue: '', ids: [] });
 let players = [], staff = [], teams = LETTERS.map(blank), cur = 0;
+let editPlayers = false, editStaff = false;
 
 const key = p => p.licence || p.id;   // identifiant stable : la licence si connue, sinon un id de secours (pas de licence obligatoire)
 const label = p => `${p.nom.toUpperCase()} ${p.prenom}`;
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const teamOf = k => teams.findIndex(t => t.ids.includes(k));
 const byName = (a, b) => label(a).localeCompare(label(b));
+const uid = prefix => prefix + Math.random().toString(36).slice(2, 9);
 
 /* ---- stockage local (navigateur) ---- */
 function save() { try { localStorage.setItem('fdm', JSON.stringify({ players, staff, teams })); } catch {} }
@@ -143,6 +164,12 @@ function parseCsv(txt, prefix) {
     return { id: prefix + i, nom, prenom, licence };
   }).filter(p => p.nom || p.prenom);
 }
+const toCsv = list => 'nom;prenom;licence\n' + list.map(p => [p.nom, p.prenom, p.licence].map(v => String(v ?? '').replace(/;/g, ' ')).join(';')).join('\n') + '\n';
+const download = (name, txt) => {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\uFEFF' + txt], { type: 'text/csv' }));
+  a.download = name; a.click();
+};
 
 $('load').onclick = () => $('file').click();
 $('file').onchange = async e => {
@@ -158,15 +185,55 @@ $('fileStaff').onchange = async e => {
   teams.forEach(t => { if (!staff.some(p => key(p) === t.delegue)) t.delegue = ''; });
   e.target.value = ''; save(); render();
 };
+$('exportPlayers').onclick = () => download('players.csv', toCsv(players));
+$('exportStaff').onclick = () => download('staff.csv', toCsv(staff));
+
+/* ---- édition : la licence (ou l'id de secours) sert de clé dans les équipes ;
+   si elle change, il faut la mettre à jour partout où elle est déjà utilisée. */
+function rekeyPlayer(oldKey, newKey) {
+  if (oldKey === newKey) return;
+  teams.forEach(t => { t.ids = t.ids.map(k => k === oldKey ? newKey : k); });
+}
+function rekeyStaff(oldKey, newKey) {
+  if (oldKey === newKey) return;
+  teams.forEach(t => { if (t.delegue === oldKey) t.delegue = newKey; });
+}
+function editRow(p) {
+  return `<li class="edit-row" data-id="${esc(p.id)}">
+    <input class="e-nom" value="${esc(p.nom)}" placeholder="Nom">
+    <input class="e-prenom" value="${esc(p.prenom)}" placeholder="Prénom">
+    <input class="e-licence" value="${esc(p.licence)}" placeholder="Licence">
+    <button class="e-rm">×</button>
+  </li>`;
+}
+const addRow = () => `<li class="edit-row add-row">
+    <input class="n-nom" placeholder="Nom">
+    <input class="n-prenom" placeholder="Prénom">
+    <input class="n-licence" placeholder="Licence">
+    <button class="n-add">+ Ajouter</button>
+  </li>`;
 
 /* ---- rendu ---- */
 function renderPlayers() {
   const q = $('search').value.toLowerCase();
   $('count').textContent = `(${players.length})`;
+  if (editPlayers) {
+    $('players').innerHTML = players.filter(p => (label(p) + p.licence).toLowerCase().includes(q)).map(editRow).join('') + addRow();
+    return;
+  }
   $('players').innerHTML = players.filter(p => (label(p) + p.licence).toLowerCase().includes(q)).map(p => {
     const t = teamOf(key(p));
     return `<li data-k="${esc(key(p))}" class="${t >= 0 ? 'taken' : ''}"><span>${esc(label(p))}</span><small>${esc(p.licence)}${t >= 0 ? ' · Éq. ' + LETTERS[t] : ''}</small></li>`;
   }).join('') || '<li>Aucun joueur : charge un CSV avec le bouton ci-dessus.</li>';
+}
+function renderStaffList() {
+  $('countStaff').textContent = `(${staff.length})`;
+  if (editStaff) {
+    $('staffList').innerHTML = staff.map(editRow).join('') + addRow();
+    return;
+  }
+  $('staffList').innerHTML = staff.map(p => `<li><span>${esc(label(p))}</span><small>${esc(p.licence)}</small></li>`).join('')
+    || '<li>Personne : charge un CSV avec le bouton ci-dessus.</li>';
 }
 function renderTeam() {
   const t = teams[cur];
@@ -180,15 +247,66 @@ function renderTeam() {
       <button data-rm="${esc(k)}">×</button></li>`;
   }).join('');
 }
-const render = () => { renderPlayers(); renderTeam(); };
+const render = () => { renderPlayers(); renderStaffList(); renderTeam(); };
 
 $('players').onclick = e => {
+  if (editPlayers) return editListClick(e, players, false);
   const li = e.target.closest('li[data-k]'); if (!li) return;
   const k = li.dataset.k, t = teams[cur], prev = teamOf(k);
   if (prev === cur) return;
   if (prev >= 0) return alert(`Ce joueur est déjà dans l'équipe ${LETTERS[prev]} : retire-le d'abord.`);
   if (t.ids.length >= MAX_PLAYERS) return alert(`Maximum ${MAX_PLAYERS} joueurs par équipe.`);
   t.ids.push(k); save(); render();
+};
+$('players').addEventListener('input', e => editListInput(e, players, false));
+$('staffList').onclick = e => editListClick(e, staff, true);
+$('staffList').addEventListener('input', e => editListInput(e, staff, true));
+
+function editListInput(e, list, isStaff) {
+  const li = e.target.closest('li[data-id]'); if (!li) return;
+  const p = list.find(x => x.id === li.dataset.id); if (!p) return;
+  if (e.target.classList.contains('e-nom')) p.nom = e.target.value;
+  else if (e.target.classList.contains('e-prenom')) p.prenom = e.target.value;
+  else if (e.target.classList.contains('e-licence')) {
+    const oldKey = key(p);
+    p.licence = e.target.value.trim();
+    (isStaff ? rekeyStaff : rekeyPlayer)(oldKey, key(p));
+  } else return;
+  save();
+}
+function editListClick(e, list, isStaff) {
+  const li = e.target.closest('li'); if (!li) return;
+  if (e.target.classList.contains('e-rm')) {
+    const idx = list.findIndex(x => x.id === li.dataset.id); if (idx < 0) return;
+    if (!confirm(`Supprimer ${label(list[idx]) || 'cette entrée'} ?`)) return;
+    const k = key(list[idx]);
+    list.splice(idx, 1);
+    if (isStaff) teams.forEach(t => { if (t.delegue === k) t.delegue = ''; });
+    else teams.forEach(t => { t.ids = t.ids.filter(x => x !== k); });
+    save(); render();
+  } else if (e.target.classList.contains('n-add')) {
+    const nom = li.querySelector('.n-nom').value.trim();
+    const prenom = li.querySelector('.n-prenom').value.trim();
+    const licence = li.querySelector('.n-licence').value.trim();
+    if (!nom && !prenom) return;
+    list.push({ id: uid(isStaff ? 's' : 'j'), nom, prenom, licence });
+    save();
+    isStaff ? renderStaffList() : renderPlayers();
+  }
+}
+$('editPlayers').onclick = () => {
+  editPlayers = !editPlayers;
+  if (!editPlayers) players.sort(byName);
+  $('editPlayers').textContent = editPlayers ? 'Terminer' : 'Éditer';
+  $('exportPlayers').hidden = !editPlayers;
+  render();
+};
+$('editStaff').onclick = () => {
+  editStaff = !editStaff;
+  if (!editStaff) staff.sort(byName);
+  $('editStaff').textContent = editStaff ? 'Terminer' : 'Éditer';
+  $('exportStaff').hidden = !editStaff;
+  renderStaffList(); renderTeam();
 };
 $('roster').onclick = e => {
   const t = teams[cur], d = e.target.dataset;
