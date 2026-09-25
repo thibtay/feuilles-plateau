@@ -33,18 +33,17 @@ ul { max-height: 55vh; overflow: auto; border: 1px solid #ddd; }
 #sheet { display: none; padding: 16px; }
 body.gen #sheet { display: flex; flex-wrap: wrap; gap: 3mm; justify-content: center; }
 body.gen main { display: none; }
-.team { width: 97mm; border-collapse: collapse; table-layout: fixed; background: #fff; color: #000; font: 9pt Calibri, Arial, sans-serif; break-inside: avoid; }
-.team td, .team th { border: .25mm solid #000; padding: 0 1.5mm; overflow: hidden; white-space: nowrap; }
-.team .title td { height: 7.5mm; font-size: 10pt; }
-.team .head th { height: 7.5mm; font: italic bold 7.5pt Calibri, Arial, sans-serif; text-align: center; }
-.team .p td, .team .deleg td { height: 6.7mm; font-size: 9pt; }
-.team .deleg td:first-child { font-weight: 700; }
+.team { width: 97mm; border-collapse: collapse; table-layout: fixed; background: #fff; color: #000; font-family: "Times New Roman", Times, serif; font-size: 16.08pt; break-inside: avoid; }
+.team td, .team th { border: .25mm solid #000; padding: 0 1.5mm; overflow: hidden; white-space: nowrap; font-weight: 400; }
+.team .title td { height: 7.62mm; }
+.team .head th { height: 7.62mm; text-align: center; }
+.team .p td { height: 6.71mm; }
+.team .deleg td { height: 6.71mm; font-size: 12pt; }
 
 @page { size: A4; margin: 8mm 4mm 4mm; }
 @media print {
   body { background: #fff; } .noprint { display: none !important; }
   body.gen #sheet { display: flex; padding: 0; justify-content: flex-start; gap: 3mm; }
-  .team .fill { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
 .csvbar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
 label select{width:100%;padding:6px;margin:4px 0 8px}
