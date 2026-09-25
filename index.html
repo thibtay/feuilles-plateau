@@ -6,35 +6,42 @@
 <title>Feuilles de plateau</title>
 <style>
 * { box-sizing: border-box; }
-body { font: 14px system-ui, sans-serif; margin: 0; background: #f4f4f4; color: #222; }
-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: #1a4a8a; color: #fff; }
-h1 { margin: 0; font-size: 20px; } h2, h3 { margin: 0 0 8px; }
-button { padding: 7px 14px; border: 1px solid #999; border-radius: 4px; background: #fff; cursor: pointer; }
-button.primary { background: #e53935; color: #fff; border-color: #b71c1c; font-weight: 600; }
-main { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 16px; max-width: 1000px; margin: auto; }
-.col { background: #fff; padding: 14px; border-radius: 6px; }
-input[type=search], label input { width: 100%; padding: 6px; margin: 4px 0 8px; }
-label { display: block; font-weight: 600; margin-top: 6px; }
+body { font: 14px/1.4 -apple-system, "Segoe UI", system-ui, sans-serif; margin: 0; background: #eef1f5; color: #1c2530; }
+header { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 24px; background: #163b73; color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+h1 { margin: 0; font-size: 19px; font-weight: 700; letter-spacing: .2px; } h2, h3 { margin: 0 0 10px; }
+h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .4px; color: #445; }
+button { padding: 7px 14px; border: 1px solid #ccd2da; border-radius: 6px; background: #fff; color: #1c2530; cursor: pointer; font: inherit; transition: background .1s, border-color .1s; }
+button:hover { background: #f2f5fa; border-color: #aab4c2; }
+button.primary { background: #d5271f; color: #fff; border-color: #a91d17; font-weight: 600; }
+button.primary:hover { background: #b81f18; }
+main { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); align-items: start; gap: 18px; padding: 20px; max-width: 1280px; margin: auto; }
+.col { background: #fff; padding: 16px 18px; border-radius: 10px; box-shadow: 0 1px 2px rgba(20,30,50,.06), 0 1px 12px rgba(20,30,50,.05); }
+input[type=search], label input, label select { width: 100%; padding: 7px 9px; margin: 4px 0 10px; border: 1px solid #ccd2da; border-radius: 6px; font: inherit; }
+input[type=search]:focus, label input:focus, label select:focus { outline: 2px solid #163b73; outline-offset: -1px; }
+label { display: block; font-weight: 600; margin-top: 8px; font-size: 13px; color: #445; }
 ul, ol { list-style: none; padding: 0; margin: 0; }
-ul { max-height: 55vh; overflow: auto; border: 1px solid #ddd; }
-#players li { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-bottom: 1px solid #eee; cursor: pointer; }
+ul { max-height: 46vh; overflow: auto; border: 1px solid #e2e6ec; border-radius: 6px; }
+#players li { display: flex; align-items: center; gap: 8px; padding: 6px 9px; border-bottom: 1px solid #eef0f3; cursor: pointer; }
+#players li:last-child { border-bottom: none; }
 #players li:hover { background: #eef4ff; }
 #players li.taken { color: #999; }
 #players li small { margin-left: auto; color: #777; }
 .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
 .tabs button { flex: 1 1 64px; }
-.tabs button.on { background: #1a4a8a; color: #fff; }
-#roster li { display: flex; gap: 8px; padding: 4px 6px; border-bottom: 1px solid #eee; }
+.tabs button.on { background: #163b73; color: #fff; border-color: #163b73; }
+#roster li { display: flex; gap: 8px; padding: 5px 9px; border-bottom: 1px solid #eef0f3; }
+#roster li:last-child { border-bottom: none; }
 #roster li span.n { width: 22px; color: #888; }
 #roster li button { margin-left: auto; padding: 0 8px; }
-.hint { color: #777; font-size: 12px; }
-#staffList li { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-bottom: 1px solid #eee; }
+.hint { color: #778; font-size: 12px; margin-top: 10px; }
+#staffList li { display: flex; align-items: center; gap: 8px; padding: 6px 9px; border-bottom: 1px solid #eef0f3; }
+#staffList li:last-child { border-bottom: none; }
 #staffList li small { margin-left: auto; color: #777; }
-.edit-row { cursor: default !important; gap: 6px; }
-.edit-row input { flex: 1; min-width: 0; padding: 5px 6px; font: inherit; border: 1px solid #ccc; border-radius: 3px; }
+.edit-row { cursor: default !important; gap: 6px; padding: 6px 9px !important; }
+.edit-row input { flex: 1; min-width: 0; padding: 5px 7px; margin: 0; font: inherit; border: 1px solid #ccd2da; border-radius: 4px; }
 .edit-row input.e-licence { flex: 0 0 110px; }
-.edit-row button { padding: 3px 9px; }
-.edit-row.add-row { background: #f7f9fc; }
+.edit-row button { padding: 4px 10px; }
+.edit-row.add-row { background: #f6f8fb; }
 
 /* ===== Feuille : image extraite telle quelle du PDF « Feuille de PLATEAU U9 »
    (bordures, libellés et lignes à remplir déjà dedans, au pixel près) ; on ne
@@ -59,8 +66,7 @@ body.gen main { display: none; }
   body { background: #fff; } .noprint { display: none !important; }
   body.gen #sheet { display: flex; padding: 0; justify-content: flex-start; gap: 3mm; }
 }
-.csvbar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
-label select{width:100%;padding:6px;margin:4px 0 8px}
+.csvbar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
 
 /* ===== Mobile : une seule colonne, boutons plus faciles à toucher ===== */
 @media screen and (max-width: 640px) {
@@ -107,15 +113,6 @@ label select{width:100%;padding:6px;margin:4px 0 8px}
   </section>
 
   <section class="col">
-    <div class="tabs" id="tabs"></div>
-    <h3 id="teamTitle"></h3>
-    <label>Nom de l'équipe <input id="teamName" placeholder="ex. FC Metz"></label>
-    <button id="clearTeam">Vider cette équipe</button> <button id="clearAll">Vider toutes les équipes</button>
-    <ol id="roster"></ol>
-    <label>Délégué <select id="delegue"></select></label>
-  </section>
-
-  <section class="col">
     <h2>Staff <span id="countStaff"></span></h2>
     <div class="csvbar">
       <button id="loadStaff">Charger staff.csv</button>
@@ -125,6 +122,15 @@ label select{width:100%;padding:6px;margin:4px 0 8px}
     </div>
     <ul id="staffList"></ul>
     <p class="hint">Dirigeants/éducateurs disponibles comme Délégué pour chaque équipe.</p>
+  </section>
+
+  <section class="col">
+    <div class="tabs" id="tabs"></div>
+    <h3 id="teamTitle"></h3>
+    <label>Nom de l'équipe <input id="teamName" placeholder="ex. FC Metz"></label>
+    <button id="clearTeam">Vider cette équipe</button> <button id="clearAll">Vider toutes les équipes</button>
+    <ol id="roster"></ol>
+    <label>Délégué <select id="delegue"></select></label>
   </section>
 </main>
 
