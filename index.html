@@ -100,6 +100,18 @@ body.gen main { display: none; }
 
 <main id="edit" class="noprint">
   <section class="col">
+    <h2>Staff <span id="countStaff"></span></h2>
+    <div class="csvbar">
+      <button id="loadStaff">Charger staff.csv</button>
+      <button id="editStaff">Éditer</button>
+      <button id="exportStaff" hidden>Exporter CSV</button>
+      <input id="fileStaff" type="file" hidden>
+    </div>
+    <ul id="staffList"></ul>
+    <p class="hint">Dirigeants/éducateurs disponibles comme Délégué pour chaque équipe.</p>
+  </section>
+
+  <section class="col">
     <h2>Joueurs <span id="count"></span></h2>
     <div class="csvbar">
       <button id="load">Charger players.csv</button>
@@ -110,18 +122,6 @@ body.gen main { display: none; }
     <input id="search" type="search" placeholder="Rechercher…">
     <ul id="players"></ul>
     <p class="hint">Format CSV : <code>nom;prenom;licence</code>. La licence est facultative (case vide) ou peut être une date de naissance <code>JJ/MM/AAAA</code> à la place. « Éditer » permet de corriger ou compléter la liste (licence notamment) directement ici ; « Exporter CSV » récupère ensuite le fichier à jour. Liste et équipes sont mémorisées dans ce navigateur.</p>
-  </section>
-
-  <section class="col">
-    <h2>Staff <span id="countStaff"></span></h2>
-    <div class="csvbar">
-      <button id="loadStaff">Charger staff.csv</button>
-      <button id="editStaff">Éditer</button>
-      <button id="exportStaff" hidden>Exporter CSV</button>
-      <input id="fileStaff" type="file" hidden>
-    </div>
-    <ul id="staffList"></ul>
-    <p class="hint">Dirigeants/éducateurs disponibles comme Délégué pour chaque équipe.</p>
   </section>
 
   <section class="col">
@@ -136,7 +136,7 @@ body.gen main { display: none; }
 
 <div id="sheet"></div>
 <script>
-const MAX_PLAYERS = 8, LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+const MAX_PLAYERS = 8, LETTERS = ['A', 'B', 'C', 'D', 'E'];
 const $ = id => document.getElementById(id);
 const blank = () => ({ nom: '', delegue: '', ids: [] });
 let players = [], staff = [], teams = LETTERS.map(blank), cur = 0;

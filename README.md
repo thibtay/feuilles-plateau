@@ -34,7 +34,7 @@ entre appareils.
 Calé sur le modèle « Feuille de PLATEAU U9 » (Nom Prénom / N° Licence, 8 joueurs,
 un Délégué par équipe) :
 
-- Jusqu'à 8 équipes (A–H), 8 joueurs max chacune. Cliquer un joueur dans la liste
+- Jusqu'à 5 équipes (A–E), 8 joueurs max chacune. Cliquer un joueur dans la liste
   de gauche l'ajoute à l'équipe affichée ; il faut le retirer avant de le mettre
   dans une autre équipe.
 - Un nom d'équipe et un Délégué (choisi dans staff.csv) par équipe.
