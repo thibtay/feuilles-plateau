@@ -47,7 +47,7 @@ ul { max-height: 46vh; overflow: auto; border: 1px solid #e2e6ec; border-radius:
    (bordures, libellés et lignes à remplir déjà dedans, au pixel près) ; on ne
    pose que le texte variable par-dessus, aux coordonnées mesurées dans le PDF. ===== */
 #sheet { display: none; padding: 16px; }
-body.gen #sheet { display: flex; flex-wrap: wrap; gap: 3mm; justify-content: center; }
+body.gen #sheet { display: flex; flex-wrap: wrap; gap: 1mm; justify-content: center; }
 body.gen main { display: none; }
 .team {
   position: relative; width: 95.377mm; height: 75.963mm; break-inside: avoid;
@@ -64,7 +64,7 @@ body.gen main { display: none; }
 @page { size: A4; margin: 8mm 4mm 4mm; }
 @media print {
   body { background: #fff; } .noprint { display: none !important; }
-  body.gen #sheet { display: flex; padding: 0; justify-content: flex-start; gap: 3mm; }
+  body.gen #sheet { display: flex; padding: 0; justify-content: flex-start; gap: 1mm; }
 }
 .csvbar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
 
